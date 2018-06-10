@@ -5,6 +5,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 
 import com.solomon.mobileguard.R;
 import com.solomon.mobileguard.utils.StreamUtil;
+import com.solomon.mobileguard.utils.ToastUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,17 +38,31 @@ public class SplashActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             switch (msg.what){
                 case UPDATE_VERSION:
+                    //弹出对话框
+                    showUpdateDialog();
                     break;
                 case ENTER_HOME:
                     enterHome();
                     break;
                 case IO_ERROR:
+                    enterHome();
+                    ToastUtil.showToast(getApplicationContext(), "读取异常");
                     break;
                 case JSON_ERROR:
+                    enterHome();
+                    ToastUtil.showToast(getApplicationContext(), "Json解析异常");
                     break;
             }
         }
     };
+
+    private void showUpdateDialog() {
+        //对话框是依赖Activity存在的
+        AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
+        builder.setIcon(R.mipmap.ic_launcher);
+
+        builder.show();
+    }
 
     private void enterHome() {
         Intent intent = new Intent(this, HomeActivity.class);
