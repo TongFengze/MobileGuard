@@ -1,8 +1,11 @@
 package com.solomon.mobileguard.activity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AlertDialog;
@@ -17,14 +20,18 @@ import com.solomon.mobileguard.utils.ToastUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xutils.common.Callback;
+import org.xutils.http.RequestParams;
+import org.xutils.x;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class SplashActivity extends AppCompatActivity {
-    private static final String tag = "SplashActivity";
+    private static final String TAG = SplashActivity.class.getSimpleName();
     private static final int UPDATE_VERSION = 100;
     private static final int ENTER_HOME = 101;
     private static final int IO_ERROR = 102;
@@ -32,6 +39,8 @@ public class SplashActivity extends AppCompatActivity {
 
     private TextView tv_versionName;
     private int mLocalVersionCode;
+    private String mVersionDes;
+    private String mDownloadUrl;
 
     private Handler mHandler = new Handler(){
         @Override
@@ -58,9 +67,57 @@ public class SplashActivity extends AppCompatActivity {
 
     private void showUpdateDialog() {
         //对话框是依赖Activity存在的
-        AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setIcon(R.mipmap.ic_launcher);
-
+        builder.setTitle("版本更新");
+        builder.setMessage(mVersionDes);
+        builder.setPositiveButton("立即下载", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //下载新版本的apk
+                //String path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "MobileGuard.apk";
+                RequestParams params = new RequestParams(mDownloadUrl);
+                //自定义保存路径，Environment.getExternalStorageDirectory()：SD卡的根目录
+                params.setSaveFilePath(Environment.getExternalStorageDirectory()+"/myapp/");
+                //自动为文件命名
+                params.setAutoRename(true);
+                x.http().post(params, new Callback.ProgressCallback<File>() {
+                    @Override
+                    public void onSuccess(File result) {
+                        //apk下载完成后，调用系统的安装方法
+                    }
+                    @Override
+                    public void onError(Throwable ex, boolean isOnCallback) {
+                    }
+                    @Override
+                    public void onCancelled(CancelledException cex) {
+                    }
+                    @Override
+                    public void onFinished() {
+                    }
+                    //网络请求之前回调
+                    @Override
+                    public void onWaiting() {
+                    }
+                    //网络请求开始的时候回调
+                    @Override
+                    public void onStarted() {
+                    }
+                    //下载的时候不断回调的方法
+                    @Override
+                    public void onLoading(long total, long current, boolean isDownloading) {
+                        //当前进度和文件总大小
+                        Log.i("JAVA","current："+ current +"，total："+total);
+                    }
+                });
+            }
+        });
+        builder.setNegativeButton("稍后再说", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                enterHome();
+            }
+        });
         builder.show();
     }
 
@@ -114,9 +171,12 @@ public class SplashActivity extends AppCompatActivity {
                     if (responseCode == 200) {
                         InputStream is = httpURLConnection.getInputStream();
                         String json = StreamUtil.stream2String(is);
-                        Log.i(tag, json);
+                        Log.i(TAG, json);
                         //解析json
                         JSONObject jsonObject = new JSONObject(json);
+                        mVersionDes = jsonObject.getString("versionDes");
+                        mDownloadUrl = jsonObject.getString("downloadUrl");
+
                         if(mLocalVersionCode < Integer.parseInt(jsonObject.getString("versionCode"))){
                             msg.what = UPDATE_VERSION;
                         }else{
