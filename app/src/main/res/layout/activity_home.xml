@@ -3,4 +3,34 @@
     xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textView"
+            style="@style/TitleStyle"
+            android:text="功能列表" />
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="marquee"
+            android:focusable="auto"
+            android:focusableInTouchMode="true"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:padding="5dp"
+            android:singleLine="true"
+            android:text="6月17日，2018世界杯，德国男模队首秀对阵墨西哥美洲蝴蝶，小组开赛前，在卢日尼基体育场外的球迷为主队呐喊助威，预测比赛比分。美洲蝴蝶球迷向世界展示了他们的热情，对胜利充满信心。"
+            android:textColor="@android:color/black" />
+
+        <GridView
+            android:id="@+id/gv_home"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:numColumns="3"
+            android:verticalSpacing="10dp" />
+    </LinearLayout>
 </android.support.constraint.ConstraintLayout>

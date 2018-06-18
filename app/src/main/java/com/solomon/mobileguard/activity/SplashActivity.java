@@ -12,6 +12,9 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.solomon.mobileguard.R;
@@ -38,6 +41,7 @@ public class SplashActivity extends AppCompatActivity {
     private static final int JSON_ERROR = 103;
 
     private TextView tv_versionName;
+    private LinearLayout  ll_layout;
     private int mLocalVersionCode;
     private String mVersionDes;
     private String mDownloadUrl;
@@ -67,27 +71,31 @@ public class SplashActivity extends AppCompatActivity {
 
     private void showUpdateDialog() {
         //对话框是依赖Activity存在的
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setIcon(R.mipmap.ic_launcher);
         builder.setTitle("版本更新");
         builder.setMessage(mVersionDes);
         builder.setPositiveButton("立即下载", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                Log.e(TAG, "OnClick");
                 //下载新版本的apk
-                //String path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "MobileGuard.apk";
-                RequestParams params = new RequestParams(mDownloadUrl);
                 //自定义保存路径，Environment.getExternalStorageDirectory()：SD卡的根目录
-                params.setSaveFilePath(Environment.getExternalStorageDirectory()+"/myapp/");
+                String path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "MobileGuard.apk";
+                RequestParams params = new RequestParams(mDownloadUrl);
+                params.setSaveFilePath(path);
                 //自动为文件命名
                 params.setAutoRename(true);
-                x.http().post(params, new Callback.ProgressCallback<File>() {
+                x.http().get(params, new Callback.ProgressCallback<File>() {
                     @Override
                     public void onSuccess(File result) {
                         //apk下载完成后，调用系统的安装方法
+                        Log.e(TAG, "下载成功");
+                        installApk(result);
                     }
                     @Override
                     public void onError(Throwable ex, boolean isOnCallback) {
+                        Log.e(TAG, "下载失败");
                     }
                     @Override
                     public void onCancelled(CancelledException cex) {
@@ -102,23 +110,57 @@ public class SplashActivity extends AppCompatActivity {
                     //网络请求开始的时候回调
                     @Override
                     public void onStarted() {
+                        Log.e(TAG, "开始下载");
                     }
                     //下载的时候不断回调的方法
                     @Override
                     public void onLoading(long total, long current, boolean isDownloading) {
                         //当前进度和文件总大小
-                        Log.i("JAVA","current："+ current +"，total："+total);
+                        Log.e(TAG, "下载进度:" + current + "/" + total);
                     }
                 });
             }
         });
+
         builder.setNegativeButton("稍后再说", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 enterHome();
             }
         });
+        //确保点击返回的时候也能进入主界面
+        builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                enterHome();
+                dialog.dismiss();
+            }
+        });
+
         builder.show();
+    }
+
+    /**
+     * 调用系统方法安装apk
+     * @param file
+     */
+    private void installApk(File file){
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
+        //用startActivityForResult方法来监听取消安装事件
+        startActivityForResult(intent, 0);
+    }
+
+    /**
+     * 取消安装后的回调函数
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        enterHome();
     }
 
     private void enterHome() {
@@ -135,10 +177,19 @@ public class SplashActivity extends AppCompatActivity {
         initUI();
         //初始化数据
         initData();
+        //初始化动画
+        initAnimation();
+    }
+
+    private void initAnimation() {
+        AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1);
+        alphaAnimation.setDuration(3000);
+        ll_layout.setAnimation(alphaAnimation);
     }
 
     private void initUI() {
         tv_versionName = findViewById(R.id.tv_versionname);
+        ll_layout = (LinearLayout)findViewById(R.id.ll_rootLayout);
     }
 
     private void initData() {
@@ -151,6 +202,9 @@ public class SplashActivity extends AppCompatActivity {
         checkVersion();
     }
 
+    /**
+     * 与后台版本对比
+     */
     private void checkVersion() {
         new Thread(){
             public void run(){
@@ -158,7 +212,7 @@ public class SplashActivity extends AppCompatActivity {
                 long startTime = System.currentTimeMillis();
 
                 try {
-                    URL url = new URL("http://192.168.1.2:8080/update.json");
+                    URL url = new URL("http://192.168.1.3:8080/update.json");
                     HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
                     httpURLConnection.setConnectTimeout(2000);
                     httpURLConnection.setReadTimeout(2000);
