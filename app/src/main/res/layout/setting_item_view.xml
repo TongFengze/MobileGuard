@@ -12,6 +12,7 @@
         android:layout_marginTop="0dp"
         android:paddingTop="0dp"
         android:text="自动更新设置"
+        android:textColor="@android:color/black"
         android:textSize="18sp" />
 
     <TextView
@@ -20,20 +21,26 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/tv_title"
         android:layout_marginLeft="10dp"
-        android:text="自动更新已关闭" />
+        android:text="自动更新已关闭"
+        android:textColor="@android:color/black" />
 
     <CheckBox
-        android:id="@+id/checkBox"
+        android:id="@+id/cb_check"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
-        android:layout_marginRight="10dp" />
+        android:layout_marginRight="10dp"
+        android:linksClickable="false"
+        android:longClickable="false"
+        android:clickable="false"
+        android:focusable="false"
+        android:focusableInTouchMode="false"/>
 
     <View
         android:id="@+id/view"
         android:layout_width="match_parent"
-        android:layout_height="1dp"
+        android:layout_height="3dp"
         android:layout_below="@+id/tv_des"
         android:foreground="@android:color/black" />
 </RelativeLayout>
