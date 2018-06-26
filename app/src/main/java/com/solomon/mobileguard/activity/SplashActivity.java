@@ -18,6 +18,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.solomon.mobileguard.R;
+import com.solomon.mobileguard.utils.ConstantValue;
+import com.solomon.mobileguard.utils.SpUtils;
 import com.solomon.mobileguard.utils.StreamUtil;
 import com.solomon.mobileguard.utils.ToastUtil;
 
@@ -199,7 +201,13 @@ public class SplashActivity extends AppCompatActivity {
         //2.获取本地版本号
         mLocalVersionCode = getLocalVersionCode();
         //3.获取服务端后台版本号
-        checkVersion();
+
+        if(SpUtils.getBoolean(this, ConstantValue.AUTOUPDATE, false)) {
+            checkVersion();
+        }
+        else {
+            mHandler.sendEmptyMessageDelayed(ENTER_HOME, 4000);
+        }
     }
 
     /**
